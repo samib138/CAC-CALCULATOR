@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Web3 Payment CAC & Profit Allocation Calculator</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background:#f7fafc }
+    .card { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 6px 18px rgba(15,23,42,0.08); }
+    .small { font-size: 0.85rem; color: #475569 }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  </style>
+</head>
+<body class="p-6">
+  <div class="max-w-6xl mx-auto">
+    <header class="mb-6">
+      <h1 class="text-2xl font-semibold">Web3 Payment CAC & Profit Allocation Calculator</h1>
+      <p class="small mt-1">Estimate customer acquisition costs across channels, project revenue & profits, and allocate profit to budgets (treasury, incentives, ops, growth).</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <section class="card">
+        <h2 class="font-medium">Inputs</h2>
+        <p class="small mb-4">Change the inputs to match your business. Default values are examples for a Web3 payment network.</p>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block small">Time period (months)</label>
+            <input id="period" type="number" value="12" class="w-28 mt-1 p-2 border rounded" />
+          </div>
+
+          <div>
+            <label class="block small">New users (customers) target</label>
+            <input id="newCustomers" type="number" value="10000" class="w-48 mt-1 p-2 border rounded" />
+          </div>
+
+          <div>
+            <label class="block small">Average Revenue per User (ARPU) / year (USD)</label>
+            <input id="arpu" type="number" value="150" class="w-48 mt-1 p-2 border rounded" />
+          </div>
+
+          <div>
+            <label class="block small">Gross margin (%)</label>
+            <input id="grossMargin" type="number" value="60" class="w-28 mt-1 p-2 border rounded" />
+          </div>
+
+          <hr class="my-3" />
+
+          <h3 class="font-medium">Marketing & Acquisition Channels (monthly spend and expected CAC)</h3>
+          <p class="small">Enter monthly spend per channel and expected CAC (USD per new customer acquired by that channel).</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="small">Partnerships monthly spend</label>
+              <input id="spend_partnerships" type="number" value="15000" class="w-full mt-1 p-2 border rounded" />
+              <label class="small mt-1">Expected CAC (partnerships)</label>
+              <input id="cac_partnerships" type="number" value="200" class="w-full mt-1 p-2 border rounded" />
+            </div>
+
+            <div>
+              <label class="small">Community & content monthly spend</label>
+              <input id="spend_community" type="number" value="5000" class="w-full mt-1 p-2 border rounded" />
+              <label class="small mt-1">Expected CAC (community)</label>
+              <input id="cac_community" type="number" value="50" class="w-full mt-1 p-2 border rounded" />
+            </div>
+
+            <div>
+              <label class="small">Incentives & subsidies monthly spend</label>
+              <input id="spend_incentives" type="number" value="30000" class="w-full mt-1 p-2 border rounded" />
+              <label class="small mt-1">Expected CAC (incentives)</label>
+              <input id="cac_incentives" type="number" value="120" class="w-full mt-1 p-2 border rounded" />
+            </div>
+
+            <div>
+              <label class="small">Paid ads & events monthly spend</label>
+              <input id="spend_paid" type="number" value="8000" class="w-full mt-1 p-2 border rounded" />
+              <label class="small mt-1">Expected CAC (paid)</label>
+              <input id="cac_paid" type="number" value="150" class="w-full mt-1 p-2 border rounded" />
+            </div>
+          </div>
+
+          <hr class="my-3" />
+
+          <h3 class="font-medium">Operational & Treasury Allocation (% of net profit)</h3>
+          <p class="small">Set target allocation percentages (they will scale from net profit). Totals should sum to 100% or you can leave spare cash.</p>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="small">Treasury / reserves (%)</label>
+              <input id="alloc_treasury" type="number" value="30" class="w-full mt-1 p-2 border rounded" />
+            </div>
+            <div>
+              <label class="small">Incentives & growth (%)</label>
+              <input id="alloc_incentives" type="number" value="25" class="w-full mt-1 p-2 border rounded" />
+            </div>
+            <div>
+              <label class="small">Operations & compliance (%)</label>
+              <input id="alloc_ops" type="number" value="20" class="w-full mt-1 p-2 border rounded" />
+            </div>
+            <div>
+              <label class="small">Product & R&D (%)</label>
+              <input id="alloc_rnd" type="number" value="15" class="w-full mt-1 p-2 border rounded" />
+            </div>
+            <div>
+              <label class="small">Marketing & biz dev (%)</label>
+              <input id="alloc_marketing" type="number" value="10" class="w-full mt-1 p-2 border rounded" />
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button id="calcBtn" class="px-4 py-2 bg-blue-600 text-white rounded">Calculate</button>
+            <button id="resetBtn" class="ml-2 px-4 py-2 border rounded">Reset to defaults</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="font-medium">Results & Allocation</h2>
+        <div id="results" class="mt-3 space-y-3 small">
+          <!-- results injected here -->
+        </div>
+
+        <canvas id="allocationChart" height="220"></canvas>
+
+        <div class="mt-4">
+          <button id="exportCsv" class="px-3 py-2 border rounded">Export results CSV</button>
+        </div>
+      </section>
+    </div>
+
+    <footer class="mt-6 small text-gray-600">Built for CEOs and finance leads: modify inputs, test scenarios (A/B incentive strategies), and observe how CAC and allocations change. Defaults are illustrative — replace them with your company numbers.</footer>
+  </div>
+
+<script>
+function number(v){ return parseFloat(v)||0 }
+
+const defaults = {
+  period:12, newCustomers:10000, arpu:150, grossMargin:60,
+  spend_partnerships:15000, cac_partnerships:200,
+  spend_community:5000, cac_community:50,
+  spend_incentives:30000, cac_incentives:120,
+  spend_paid:8000, cac_paid:150,
+  alloc_treasury:30, alloc_incentives:25, alloc_ops:20, alloc_rnd:15, alloc_marketing:10
+}
+
+function setDefaults(){
+  for(const k in defaults){ const el=document.getElementById(k); if(el) el.value=defaults[k] }
+}
+setDefaults()
+
+function calculate(){
+  const period = number(document.getElementById('period').value)
+  const newCustomersTarget = number(document.getElementById('newCustomers').value)
+  const arpu = number(document.getElementById('arpu').value)
+  const grossMarginPct = number(document.getElementById('grossMargin').value)/100
+
+  // monthly spends and CAC
+  const channels = ['partnerships','community','incentives','paid']
+  let totalMonthlySpend = 0
+  let totalAcquired = 0
+  const channelDetails = {}
+  channels.forEach(c=>{
+    const spend = number(document.getElementById('spend_'+c).value)
+    const cac = number(document.getElementById('cac_'+c).value)
+    totalMonthlySpend += spend
+    const acquiredMonthly = cac>0? Math.floor(spend / cac) : 0
+    channelDetails[c] = {spend,cac,acquiredMonthly}
+    totalAcquired += acquiredMonthly
+  })
+
+  // scale to period months
+  const totalSpend = totalMonthlySpend * period
+  const acquired = totalAcquired * period
+  // if acquired < target, show required extra spend at blended CAC
+  const target = newCustomersTarget
+  let shortfall = target - acquired
+  let blendedCAC = 0
+  if(acquired>0) blendedCAC = totalSpend / acquired
+  else blendedCAC = (defaults.spend_incentives+defaults.spend_partnerships+defaults.spend_community+defaults.spend_paid) // fallback
+
+  let extraSpendToHitTarget=0
+  if(shortfall>0){ extraSpendToHitTarget = shortfall * blendedCAC }
+
+  // Revenue and profit
+  const revenuePerCustomerPeriod = arpu * (period/12) // pro-rate arpu to period
+  const totalRevenue = target * revenuePerCustomerPeriod
+  const grossProfit = totalRevenue * grossMarginPct
+  const totalCAC = totalSpend + extraSpendToHitTarget
+  const totalCACperCustomer = target>0? (totalCAC/target) : 0
+  const netProfit = grossProfit - totalCAC
+
+  // allocations
+  const alloc = {
+    treasuryPct:number(document.getElementById('alloc_treasury').value),
+    incentivesPct:number(document.getElementById('alloc_incentives').value),
+    opsPct:number(document.getElementById('alloc_ops').value),
+    rndPct:number(document.getElementById('alloc_rnd').value),
+    marketingPct:number(document.getElementById('alloc_marketing').value)
+  }
+  const allocTotalPct = Object.values(alloc).reduce((a,b)=>a+b,0)
+  const allocations = {}
+  Object.keys(alloc).forEach(k=> allocations[k] = Math.max(0, netProfit * (alloc[k]/100)))
+  const leftover = netProfit - Object.values(allocations).reduce((a,b)=>a+b,0)
+
+  return {period,target,totalMonthlySpend,totalSpend,acquired,blendedCAC,extraSpendToHitTarget,totalRevenue,grossProfit,totalCAC,totalCACperCustomer,netProfit,channelDetails,alloc,allocations,allocTotalPct,leftover}
+}
+
+function render(){
+  const r = calculate()
+  const out = document.getElementById('results')
+  out.innerHTML = `
+    <div><strong>Period:</strong> ${r.period} months</div>
+    <div><strong>Target customers:</strong> ${r.target.toLocaleString()}</div>
+    <div><strong>Total projected revenue:</strong> $${r.totalRevenue.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+    <div><strong>Gross profit (after COGS):</strong> $${r.grossProfit.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+    <div><strong>Total acquisition spend (period):</strong> $${r.totalSpend.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+    <div><strong>Estimated acquired from current monthly spends:</strong> ${r.acquired.toLocaleString()}</div>
+    <div><strong>Blended CAC (current):</strong> $${r.blendedCAC.toFixed(2)}</div>
+    <div><strong>Extra spend required to hit target (est):</strong> $${r.extraSpendToHitTarget.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+    <div><strong>Total CAC (including extra):</strong> $${r.totalCAC.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+    <div><strong>Total CAC per customer (period):</strong> $${r.totalCACperCustomer.toFixed(2)}</div>
+    <div><strong>Net profit (gross - CAC):</strong> $${r.netProfit.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+    <hr />
+    <div class=\"font-medium mt-2\">Allocation (from net profit)</div>
+    <div class=\"small mt-1\">Allocation total set: ${r.allocTotalPct}% (if not 100, leftover will remain)</div>
+    <ul class=\"small list-disc pl-5 mt-2\">
+      <li>Treasury / reserves: $${r.allocations.treasury.toLocaleString(undefined,{maximumFractionDigits:0})}</li>
+      <li>Incentives & growth: $${r.allocations.incentives.toLocaleString(undefined,{maximumFractionDigits:0})}</li>
+      <li>Operations & compliance: $${r.allocations.ops.toLocaleString(undefined,{maximumFractionDigits:0})}</li>
+      <li>Product & R&D: $${r.allocations.rnd.toLocaleString(undefined,{maximumFractionDigits:0})}</li>
+      <li>Marketing & biz dev: $${r.allocations.marketing.toLocaleString(undefined,{maximumFractionDigits:0})}</li>
+    </ul>
+    <div class=\"mt-2 small\"><strong>Leftover from net profit:</strong> $${r.leftover.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+  `
+
+  renderChart(r)
+}
+
+let chartInstance=null
+function renderChart(r){
+  const ctx = document.getElementById('allocationChart').getContext('2d')
+  const labels = ['Treasury','Incentives','Ops','R&D','Marketing','Leftover']
+  const values = [r.allocations.treasury,r.allocations.incentives,r.allocations.ops,r.allocations.rnd,r.allocations.marketing, r.leftover].map(v=>Math.max(0, Number(v.toFixed(2))))
+  if(chartInstance) chartInstance.destroy()
+  chartInstance = new Chart(ctx,{
+    type:'pie',
+    data:{labels, datasets:[{data:values}]},
+    options:{plugins:{legend:{position:'bottom'}}}
+  })
+}
+
+function exportCSV(){
+  const r = calculate()
+  const rows = []
+  rows.push(['Period months', r.period])
+  rows.push(['Target customers', r.target])
+  rows.push(['Total revenue', r.totalRevenue])
+  rows.push(['Gross profit', r.grossProfit])
+  rows.push(['Total acquisition spend', r.totalSpend])
+  rows.push(['Estimated acquired', r.acquired])
+  rows.push(['Blended CAC', r.blendedCAC.toFixed(2)])
+  rows.push(['Extra spend to hit target', r.extraSpendToHitTarget])
+  rows.push(['Total CAC', r.totalCAC])
+  rows.push(['Total CAC per customer', r.totalCACperCustomer])
+  rows.push(['Net profit', r.netProfit])
+  rows.push([])
+  rows.push(['Allocations (from net profit)'])
+  rows.push(['Treasury', r.allocations.treasury])
+  rows.push(['Incentives', r.allocations.incentives])
+  rows.push(['Ops', r.allocations.ops])
+  rows.push(['R&D', r.allocations.rnd])
+  rows.push(['Marketing', r.allocations.marketing])
+  rows.push(['Leftover', r.leftover])
+
+  let csv = rows.map(r=>r.map(c=>typeof c==='string' && c.includes(',')? `"${c}"` : c).join(',')).join('\n')
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'})
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'cac_allocation_results.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+document.getElementById('calcBtn').addEventListener('click', ()=> render())
+document.getElementById('resetBtn').addEventListener('click', ()=>{ setDefaults(); render() })
+document.getElementById('exportCsv').addEventListener('click', ()=> exportCSV())
+
+// initial render
+render()
+</script>
+</body>
+</html>
