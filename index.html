@@ -151,7 +151,6 @@
   </div>
 
 <script>
-// ... existing JavaScript unchanged ...
 function number(v){ return parseFloat(v)||0 }
 
 const defaults = {
@@ -163,16 +162,73 @@ const defaults = {
   alloc_treasury:30, alloc_incentives:25, alloc_ops:20, alloc_rnd:15, alloc_marketing:10
 }
 
-// ... rest of the JavaScript stays the same ...
 function setDefaults(){
   for(const k in defaults){ const el=document.getElementById(k); if(el) el.value=defaults[k] }
 }
 setDefaults()
 
-// (Calculation, render, chart, CSV export functions remain as in previous version)
+function calculate(){
+  const period = number(document.getElementById('period').value)
+  const newCustomersTarget = number(document.getElementById('newCustomers').value)
+  const arpu = number(document.getElementById('arpu').value)
+  const grossMarginPct = number(document.getElementById('grossMargin').value)/100
 
-// initial render
-render()
-</script>
-</body>
-</html>
+  const channels = ['partnerships','community','incentives','paid']
+  let totalMonthlySpend = 0
+  let totalAcquired = 0
+  const channelDetails = {}
+  channels.forEach(c=>{
+    const spend = number(document.getElementById('spend_'+c).value)
+    const cac = number(document.getElementById('cac_'+c).value)
+    totalMonthlySpend += spend
+    const acquiredMonthly = cac>0? Math.floor(spend / cac) : 0
+    channelDetails[c] = {spend,cac,acquiredMonthly}
+    totalAcquired += acquiredMonthly
+  })
+
+  const totalSpend = totalMonthlySpend * period
+  const acquired = totalAcquired * period
+  const target = newCustomersTarget
+  let shortfall = target - acquired
+  let blendedCAC = acquired>0 ? totalSpend / acquired : 0
+
+  let extraSpendToHitTarget=0
+  if(shortfall>0 && blendedCAC>0){ extraSpendToHitTarget = shortfall * blendedCAC }
+
+  const revenuePerCustomerPeriod = arpu * (period/12)
+  const totalRevenue = target * revenuePerCustomerPeriod
+  const grossProfit = totalRevenue * grossMarginPct
+  const totalCAC = totalSpend + extraSpendToHitTarget
+  const totalCACperCustomer = target>0? (totalCAC/target) : 0
+  const netProfit = grossProfit - totalCAC
+
+  const alloc = {
+    treasuryPct:number(document.getElementById('alloc_treasury').value),
+    incentivesPct:number(document.getElementById('alloc_incentives').value),
+    opsPct:number(document.getElementById('alloc_ops').value),
+    rndPct:number(document.getElementById('alloc_rnd').value),
+    marketingPct:number(document.getElementById('alloc_marketing').value)
+  }
+  const allocations = {
+    treasury: netProfit * (alloc.treasuryPct/100),
+    incentives: netProfit * (alloc.incentivesPct/100),
+    ops: netProfit * (alloc.opsPct/100),
+    rnd: netProfit * (alloc.rndPct/100),
+    marketing: netProfit * (alloc.marketingPct/100)
+  }
+  const leftover = netProfit - Object.values(allocations).reduce((a,b)=>a+b,0)
+
+  return {period,target,totalSpend,acquired,blendedCAC,extraSpendToHitTarget,totalRevenue,grossProfit,totalCAC,totalCACperCustomer,netProfit,channelDetails,allocations,leftover}
+}
+
+function render(){
+  const r = calculate()
+  const out = document.getElementById('results')
+  function safe(val){ return isNaN(val)?0:val }
+  out.innerHTML = `
+    <div><strong>Period:</strong> ${r.period} months</div>
+    <div><strong>Target customers:</strong> ${r.target.toLocaleString()}</div>
+    <div><strong>Total projected revenue:</strong> $${safe(r.totalRevenue).toLocaleString()}</div>
+    <div><strong>Gross profit (after COGS):</strong> $${safe(r.grossProfit).toLocaleString()}</div>
+    <div><strong>Total acquisition spend (period):</strong> $${safe(r.totalSpend).toLocaleString()}</div>
+    <div><strong>Estimated
