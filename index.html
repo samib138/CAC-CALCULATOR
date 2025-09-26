@@ -3,453 +3,1172 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Web3 Payment CAC & Profit Allocation Calculator — Production</title>
-  <!-- Tailwind CDN for quick styling (replace with your build pipeline in production) -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <!-- Chart.js for allocation visualization -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <meta name="description" content="Professional CAC and profit allocation calculator for Web3 payment businesses" />
+  <title>Web3 Payment CAC & Profit Allocation Calculator v1.0</title>
+  
+  <!-- Tailwind CDN -->
+  <link 
+    href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" 
+    rel="stylesheet"
+    crossorigin="anonymous">
+  
+  <!-- Chart.js -->
+  <script 
+    src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"
+    crossorigin="anonymous"></script>
+
   <style>
-    :root{--bg:#f7fafc;--card:#ffffff;--muted:#475569}
-    body{background:var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
-    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
-    .small{font-size:0.9rem;color:var(--muted)}
-    .danger{color:#9b1c1c}
-    .muted{color:#6b7280}
-    input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-    .kv{font-variant-numeric:tabular-nums}
+    :root {
+      --bg: #f7fafc;
+      --card: #ffffff;
+      --muted: #475569;
+      --danger: #dc2626;
+      --success: #059669;
+      --warning: #d97706;
+    }
+    
+    body {
+      background: var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    }
+    
+    .small {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    
+    .danger { color: var(--danger); }
+    .success { color: var(--success); }
+    .warning { color: var(--warning); }
+    .muted { color: #6b7280; }
+    
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    
+    .kv {
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .input-error {
+      border-color: var(--danger);
+      background-color: #fef2f2;
+    }
+    
+    .input-success {
+      border-color: var(--success);
+    }
+    
+    .error-message {
+      color: var(--danger);
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading {
+      animation: spin 1s linear infinite;
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Accessible focus styles */
+    input:focus, button:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
   </style>
 </head>
 <body class="p-6">
   <div class="max-w-7xl mx-auto">
     <header class="mb-6">
       <h1 class="text-2xl font-semibold">Web3 Payment CAC & Profit Allocation Calculator</h1>
-      <p class="small mt-1">A robust, production-ready single-file calculator that ties acquisition spend → CAC → revenue → net profit and splits profit across treasury, incentives, ops, R&D and marketing.</p>
+      <p class="small mt-1">Production-ready calculator for customer acquisition cost analysis and profit allocation planning</p>
     </header>
 
-    <!-- CEO guide -->
+    <!-- CEO Guide -->
     <section class="card mb-6">
-      <h2 class="font-medium text-lg">How to use (CEO-friendly)</h2>
-      <ol class="list-decimal pl-6 small mt-2 space-y-2">
-        <li>Set your <strong>time horizon</strong> (months) and <strong>new-customer target</strong>.</li>
-        <li>Enter revenue assumptions: <strong>ARPU</strong> (annual) and <strong>gross margin</strong> %.</li>
-        <li>For each acquisition channel, enter <strong>monthly spend</strong> and expected <strong>CAC</strong> (USD/customer).</li>
-        <li>Adjust profit allocation percentages to reflect strategy (treasury, incentives, ops, R&D, marketing).</li>
-        <li>Click <strong>Calculate</strong>. Review the summary, per-channel acquisitions, blended CAC, extra spend to hit target, and allocation chart.</li>
-        <li>Export results to CSV for finance reports or run scenario comparisons by changing inputs.</li>
+      <h2 class="font-medium text-lg mb-3">Quick Start Guide</h2>
+      <ol class="list-decimal pl-6 small space-y-2">
+        <li>Set your <strong>time horizon</strong> (months) and <strong>new customer target</strong></li>
+        <li>Enter revenue assumptions: <strong>ARPU</strong> (annual) and <strong>gross margin</strong> %</li>
+        <li>For each acquisition channel, enter <strong>monthly spend</strong> and expected <strong>CAC</strong></li>
+        <li>Adjust profit allocation percentages (treasury, incentives, ops, R&D, marketing)</li>
+        <li>Click <strong>Calculate</strong> to see results, or use auto-calculate mode</li>
+        <li>Export results to CSV/JSON for reporting and analysis</li>
       </ol>
-      <p class="small mt-3 muted">Notes: If net profit is negative, allocations will reflect that — you'll see a clear warning. CACs set to 0 and positive spend will produce a validation warning.</p>
+      
+      <div class="mt-3 p-3 bg-blue-50 rounded">
+        <p class="small"><strong>💡 Tip:</strong> Enable auto-calculate to see live updates as you adjust inputs. Validation warnings appear when CAC is 0 but spend is positive.</p>
+      </div>
     </section>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Inputs -->
-      <section class="card" aria-labelledby="inputsHeading">
-        <h2 id="inputsHeading" class="font-medium">Inputs</h2>
-        <p class="small mb-4">Change values to match your business assumptions. Defaults are illustrative.</p>
+      <!-- Inputs Section -->
+      <section class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-medium text-lg">Input Parameters</h2>
+          <label class="flex items-center gap-2 small">
+            <input type="checkbox" id="autoCalc" checked aria-label="Enable automatic calculation">
+            <span>Auto-calculate</span>
+          </label>
+        </div>
 
-        <form id="calcForm" class="space-y-4" onsubmit="return false;" novalidate>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label class="small block" for="period">Time period (months)</label>
-              <input id="period" name="period" type="number" min="1" step="1" value="12" class="w-28 mt-1 p-2 border rounded" />
-            </div>
-
-            <div>
-              <label class="small block" for="newCustomers">New customers target</label>
-              <input id="newCustomers" name="newCustomers" type="number" min="0" step="1" value="10000" class="w-48 mt-1 p-2 border rounded" />
-            </div>
-
-            <div>
-              <label class="small block" for="arpu">ARPU (USD / year)</label>
-              <input id="arpu" name="arpu" type="number" min="0" step="0.01" value="150" class="w-48 mt-1 p-2 border rounded" />
-            </div>
-
-            <div>
-              <label class="small block" for="grossMargin">Gross margin (%)</label>
-              <input id="grossMargin" name="grossMargin" type="number" min="0" max="100" step="0.1" value="60" class="w-28 mt-1 p-2 border rounded" />
-            </div>
-          </div>
-
-          <hr class="my-3" />
-
-          <h3 class="font-medium">Acquisition channels (monthly spend + expected CAC)</h3>
-          <p class="small">If a channel's CAC is set to 0 while spend &gt; 0 you'll get a warning — CAC should be > 0 to compute acquisitions.</p>
-
-          <div class="grid grid-cols-1 gap-3 mt-2" id="channels">
-            <!-- Channel row template replicated for clarity -->
-            <div class="grid grid-cols-3 gap-3 items-end">
+        <form id="calcForm" novalidate aria-label="Calculator inputs">
+          <!-- Business Parameters -->
+          <fieldset class="space-y-4">
+            <legend class="font-medium mb-3">Business Parameters</legend>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="small block">Partnerships — monthly spend</label>
-                <input id="spend_partnerships" name="spend_partnerships" type="number" min="0" step="1" value="15000" class="w-full mt-1 p-2 border rounded" />
+                <label for="period" class="small block mb-1">Time Period (months) <span class="danger">*</span></label>
+                <input 
+                  id="period" 
+                  type="number" 
+                  min="1" 
+                  max="120"
+                  step="1" 
+                  value="12" 
+                  required
+                  aria-required="true"
+                  aria-describedby="period-error"
+                  class="w-full p-2 border rounded">
+                <div id="period-error" class="error-message" role="alert"></div>
               </div>
-              <div>
-                <label class="small block">Expected CAC (partnerships)</label>
-                <input id="cac_partnerships" name="cac_partnerships" type="number" min="0" step="0.01" value="200" class="w-full mt-1 p-2 border rounded" />
-              </div>
-              <div class="small kv">Estimated monthly acquisitions: <span id="acq_partnerships">0</span></div>
-            </div>
 
-            <div class="grid grid-cols-3 gap-3 items-end">
               <div>
-                <label class="small block">Community — monthly spend</label>
-                <input id="spend_community" name="spend_community" type="number" min="0" step="1" value="5000" class="w-full mt-1 p-2 border rounded" />
+                <label for="newCustomers" class="small block mb-1">Target New Customers <span class="danger">*</span></label>
+                <input 
+                  id="newCustomers" 
+                  type="number" 
+                  min="1" 
+                  max="10000000"
+                  step="1" 
+                  value="10000" 
+                  required
+                  aria-required="true"
+                  aria-describedby="newCustomers-error"
+                  class="w-full p-2 border rounded">
+                <div id="newCustomers-error" class="error-message" role="alert"></div>
               </div>
+
               <div>
-                <label class="small block">Expected CAC (community)</label>
-                <input id="cac_community" name="cac_community" type="number" min="0" step="0.01" value="50" class="w-full mt-1 p-2 border rounded" />
+                <label for="arpu" class="small block mb-1">ARPU - USD/year <span class="danger">*</span></label>
+                <input 
+                  id="arpu" 
+                  type="number" 
+                  min="0" 
+                  step="0.01" 
+                  value="150" 
+                  required
+                  aria-required="true"
+                  aria-describedby="arpu-error"
+                  class="w-full p-2 border rounded">
+                <div id="arpu-error" class="error-message" role="alert"></div>
               </div>
-              <div class="small kv">Estimated monthly acquisitions: <span id="acq_community">0</span></div>
-            </div>
 
-            <div class="grid grid-cols-3 gap-3 items-end">
               <div>
-                <label class="small block">Incentives — monthly spend</label>
-                <input id="spend_incentives" name="spend_incentives" type="number" min="0" step="1" value="30000" class="w-full mt-1 p-2 border rounded" />
+                <label for="grossMargin" class="small block mb-1">Gross Margin (%) <span class="danger">*</span></label>
+                <input 
+                  id="grossMargin" 
+                  type="number" 
+                  min="0" 
+                  max="100" 
+                  step="0.1" 
+                  value="60" 
+                  required
+                  aria-required="true"
+                  aria-describedby="grossMargin-error"
+                  class="w-full p-2 border rounded">
+                <div id="grossMargin-error" class="error-message" role="alert"></div>
               </div>
+            </div>
+          </fieldset>
+
+          <!-- Acquisition Channels -->
+          <fieldset class="mt-6 space-y-4">
+            <legend class="font-medium mb-3">Acquisition Channels</legend>
+            <p class="small muted mb-3">Monthly spend and expected CAC per channel</p>
+
+            <div id="channelsContainer" class="space-y-4">
+              <!-- Partnerships -->
+              <div class="border rounded p-3">
+                <h4 class="font-medium small mb-2">Partnerships</h4>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label for="spend_partnerships" class="small block mb-1">Monthly Spend ($)</label>
+                    <input 
+                      id="spend_partnerships" 
+                      type="number" 
+                      min="0" 
+                      step="1" 
+                      value="15000"
+                      aria-describedby="spend_partnerships-error"
+                      class="w-full p-2 border rounded text-sm">
+                    <div id="spend_partnerships-error" class="error-message" role="alert"></div>
+                  </div>
+                  <div>
+                    <label for="cac_partnerships" class="small block mb-1">Expected CAC ($)</label>
+                    <input 
+                      id="cac_partnerships" 
+                      type="number" 
+                      min="0" 
+                      step="0.01" 
+                      value="200"
+                      aria-describedby="cac_partnerships-error"
+                      class="w-full p-2 border rounded text-sm">
+                    <div id="cac_partnerships-error" class="error-message" role="alert"></div>
+                  </div>
+                </div>
+                <div class="small kv mt-2 text-gray-600">
+                  Monthly acquisitions: <strong id="acq_partnerships">0</strong>
+                </div>
+              </div>
+
+              <!-- Community -->
+              <div class="border rounded p-3">
+                <h4 class="font-medium small mb-2">Community</h4>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label for="spend_community" class="small block mb-1">Monthly Spend ($)</label>
+                    <input 
+                      id="spend_community" 
+                      type="number" 
+                      min="0" 
+                      step="1" 
+                      value="5000"
+                      aria-describedby="spend_community-error"
+                      class="w-full p-2 border rounded text-sm">
+                    <div id="spend_community-error" class="error-message" role="alert"></div>
+                  </div>
+                  <div>
+                    <label for="cac_community" class="small block mb-1">Expected CAC ($)</label>
+                    <input 
+                      id="cac_community" 
+                      type="number" 
+                      min="0" 
+                      step="0.01" 
+                      value="50"
+                      aria-describedby="cac_community-error"
+                      class="w-full p-2 border rounded text-sm">
+                    <div id="cac_community-error" class="error-message" role="alert"></div>
+                  </div>
+                </div>
+                <div class="small kv mt-2 text-gray-600">
+                  Monthly acquisitions: <strong id="acq_community">0</strong>
+                </div>
+              </div>
+
+              <!-- Incentives -->
+              <div class="border rounded p-3">
+                <h4 class="font-medium small mb-2">Incentives</h4>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label for="spend_incentives" class="small block mb-1">Monthly Spend ($)</label>
+                    <input 
+                      id="spend_incentives" 
+                      type="number" 
+                      min="0" 
+                      step="1" 
+                      value="30000"
+                      aria-describedby="spend_incentives-error"
+                      class="w-full p-2 border rounded text-sm">
+                    <div id="spend_incentives-error" class="error-message" role="alert"></div>
+                  </div>
+                  <div>
+                    <label for="cac_incentives" class="small block mb-1">Expected CAC ($)</label>
+                    <input 
+                      id="cac_incentives" 
+                      type="number" 
+                      min="0" 
+                      step="0.01" 
+                      value="120"
+                      aria-describedby="cac_incentives-error"
+                      class="w-full p-2 border rounded text-sm">
+                    <div id="cac_incentives-error" class="error-message" role="alert"></div>
+                  </div>
+                </div>
+                <div class="small kv mt-2 text-gray-600">
+                  Monthly acquisitions: <strong id="acq_incentives">0</strong>
+                </div>
+              </div>
+
+              <!-- Paid Ads -->
+              <div class="border rounded p-3">
+                <h4 class="font-medium small mb-2">Paid Ads & Events</h4>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label for="spend_paid" class="small block mb-1">Monthly Spend ($)</label>
+                    <input 
+                      id="spend_paid" 
+                      type="number" 
+                      min="0" 
+                      step="1" 
+                      value="8000"
+                      aria-describedby="spend_paid-error"
+                      class="w-full p-2 border rounded text-sm">
+                    <div id="spend_paid-error" class="error-message" role="alert"></div>
+                  </div>
+                  <div>
+                    <label for="cac_paid" class="small block mb-1">Expected CAC ($)</label>
+                    <input 
+                      id="cac_paid" 
+                      type="number" 
+                      min="0" 
+                      step="0.01" 
+                      value="150"
+                      aria-describedby="cac_paid-error"
+                      class="w-full p-2 border rounded text-sm">
+                    <div id="cac_paid-error" class="error-message" role="alert"></div>
+                  </div>
+                </div>
+                <div class="small kv mt-2 text-gray-600">
+                  Monthly acquisitions: <strong id="acq_paid">0</strong>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Profit Allocations -->
+          <fieldset class="mt-6 space-y-4">
+            <legend class="font-medium mb-3">Profit Allocation Strategy</legend>
+            <p class="small muted mb-3">Percentage of net profit allocated to each category</p>
+
+            <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="small block">Expected CAC (incentives)</label>
-                <input id="cac_incentives" name="cac_incentives" type="number" min="0" step="0.01" value="120" class="w-full mt-1 p-2 border rounded" />
+                <label for="alloc_treasury" class="small block mb-1">Treasury/Reserves (%)</label>
+                <input 
+                  id="alloc_treasury" 
+                  type="number" 
+                  min="0" 
+                  max="100"
+                  step="0.1" 
+                  value="30"
+                  aria-describedby="alloc_treasury-error"
+                  class="w-full p-2 border rounded text-sm">
+                <div id="alloc_treasury-error" class="error-message" role="alert"></div>
               </div>
-              <div class="small kv">Estimated monthly acquisitions: <span id="acq_incentives">0</span></div>
-            </div>
 
-            <div class="grid grid-cols-3 gap-3 items-end">
               <div>
-                <label class="small block">Paid ads & events — monthly spend</label>
-                <input id="spend_paid" name="spend_paid" type="number" min="0" step="1" value="8000" class="w-full mt-1 p-2 border rounded" />
+                <label for="alloc_incentives" class="small block mb-1">Incentives & Growth (%)</label>
+                <input 
+                  id="alloc_incentives" 
+                  type="number" 
+                  min="0" 
+                  max="100"
+                  step="0.1" 
+                  value="25"
+                  aria-describedby="alloc_incentives-error"
+                  class="w-full p-2 border rounded text-sm">
+                <div id="alloc_incentives-error" class="error-message" role="alert"></div>
               </div>
+
               <div>
-                <label class="small block">Expected CAC (paid)</label>
-                <input id="cac_paid" name="cac_paid" type="number" min="0" step="0.01" value="150" class="w-full mt-1 p-2 border rounded" />
+                <label for="alloc_ops" class="small block mb-1">Ops & Compliance (%)</label>
+                <input 
+                  id="alloc_ops" 
+                  type="number" 
+                  min="0" 
+                  max="100"
+                  step="0.1" 
+                  value="20"
+                  aria-describedby="alloc_ops-error"
+                  class="w-full p-2 border rounded text-sm">
+                <div id="alloc_ops-error" class="error-message" role="alert"></div>
               </div>
-              <div class="small kv">Estimated monthly acquisitions: <span id="acq_paid">0</span></div>
-            </div>
-          </div>
 
-          <hr class="my-3" />
+              <div>
+                <label for="alloc_rnd" class="small block mb-1">Product & R&D (%)</label>
+                <input 
+                  id="alloc_rnd" 
+                  type="number" 
+                  min="0" 
+                  max="100"
+                  step="0.1" 
+                  value="15"
+                  aria-describedby="alloc_rnd-error"
+                  class="w-full p-2 border rounded text-sm">
+                <div id="alloc_rnd-error" class="error-message" role="alert"></div>
+              </div>
 
-          <h3 class="font-medium">Profit allocations (% of net profit)</h3>
-          <p class="small">Set the % split of net profit. Totals do not need to be 100% — leftover will remain.</p>
+              <div>
+                <label for="alloc_marketing" class="small block mb-1">Marketing & Biz Dev (%)</label>
+                <input 
+                  id="alloc_marketing" 
+                  type="number" 
+                  min="0" 
+                  max="100"
+                  step="0.1" 
+                  value="10"
+                  aria-describedby="alloc_marketing-error"
+                  class="w-full p-2 border rounded text-sm">
+                <div id="alloc_marketing-error" class="error-message" role="alert"></div>
+              </div>
 
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="small block">Treasury / reserves (%)</label>
-              <input id="alloc_treasury" name="alloc_treasury" type="number" min="0" step="0.1" value="30" class="w-full mt-1 p-2 border rounded" />
+              <div class="flex items-end">
+                <div class="small kv text-gray-600">
+                  Total: <strong id="allocTotal">100</strong>%
+                </div>
+              </div>
             </div>
-            <div>
-              <label class="small block">Incentives & growth (%)</label>
-              <input id="alloc_incentives" name="alloc_incentives" type="number" min="0" step="0.1" value="25" class="w-full mt-1 p-2 border rounded" />
-            </div>
-            <div>
-              <label class="small block">Ops & compliance (%)</label>
-              <input id="alloc_ops" name="alloc_ops" type="number" min="0" step="0.1" value="20" class="w-full mt-1 p-2 border rounded" />
-            </div>
-            <div>
-              <label class="small block">Product & R&D (%)</label>
-              <input id="alloc_rnd" name="alloc_rnd" type="number" min="0" step="0.1" value="15" class="w-full mt-1 p-2 border rounded" />
-            </div>
-            <div>
-              <label class="small block">Marketing & biz dev (%)</label>
-              <input id="alloc_marketing" name="alloc_marketing" type="number" min="0" step="0.1" value="10" class="w-full mt-1 p-2 border rounded" />
-            </div>
-          </div>
+          </fieldset>
 
-          <div class="mt-4 flex items-center gap-2">
-            <button id="calcBtn" type="button" class="px-4 py-2 bg-blue-600 text-white rounded">Calculate</button>
-            <button id="resetBtn" type="button" class="px-4 py-2 border rounded">Reset</button>
-            <button id="exampleBtn" type="button" class="px-4 py-2 border rounded">Load example scenario</button>
-            <div id="formMessages" class="ml-4 small"></div>
+          <!-- Action Buttons -->
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <button 
+              id="calcBtn" 
+              type="button" 
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              aria-label="Calculate results">
+              Calculate
+            </button>
+            <button 
+              id="resetBtn" 
+              type="button" 
+              class="px-4 py-2 border rounded hover:bg-gray-50 transition-colors"
+              aria-label="Reset to default values">
+              Reset
+            </button>
+            <button 
+              id="exampleBtn" 
+              type="button" 
+              class="px-4 py-2 border rounded hover:bg-gray-50 transition-colors"
+              aria-label="Load example scenario">
+              Load Example
+            </button>
+            <div id="calcStatus" class="small ml-2" role="status" aria-live="polite"></div>
           </div>
         </form>
       </section>
 
-      <!-- Results -->
-      <section class="card" aria-labelledby="resultsHeading">
-        <h2 id="resultsHeading" class="font-medium">Results & Allocation</h2>
-        <div id="banner" class="mt-3"></div>
+      <!-- Results Section -->
+      <section class="card">
+        <h2 class="font-medium text-lg mb-4">Results & Analysis</h2>
 
-        <div id="results" class="mt-3 space-y-3 small">
-          <!-- injected results -->
-        </div>
+        <!-- Alerts Banner -->
+        <div id="alertBanner" role="alert" aria-live="assertive"></div>
 
-        <div class="mt-4">
-          <canvas id="allocationChart" height="220"></canvas>
-        </div>
+        <!-- Results Display -->
+        <div id="resultsContainer" class="fade-in">
+          <div id="results" class="space-y-3 small"></div>
 
-        <div class="mt-4 flex gap-2">
-          <button id="exportCsv" class="px-3 py-2 border rounded">Export CSV</button>
-          <button id="exportJson" class="px-3 py-2 border rounded">Download JSON</button>
+          <!-- Chart -->
+          <div class="mt-6" role="img" aria-label="Profit allocation pie chart">
+            <canvas id="allocationChart" height="220"></canvas>
+          </div>
+
+          <!-- Export Actions -->
+          <div class="mt-6 flex flex-wrap gap-3">
+            <button 
+              id="exportCsv" 
+              class="px-4 py-2 border rounded hover:bg-gray-50 transition-colors"
+              aria-label="Export results to CSV">
+              📊 Export CSV
+            </button>
+            <button 
+              id="exportJson" 
+              class="px-4 py-2 border rounded hover:bg-gray-50 transition-colors"
+              aria-label="Export results to JSON">
+              📋 Export JSON
+            </button>
+            <button 
+              id="printBtn" 
+              class="px-4 py-2 border rounded hover:bg-gray-50 transition-colors"
+              aria-label="Print results">
+              🖨️ Print
+            </button>
+          </div>
         </div>
       </section>
     </div>
 
-    <footer class="mt-6 small muted">Production notes: this single-file should be part of your build system. Replace CDN links with bundled assets for better stability & performance. Consider moving heavy computations to the backend for auditability if required.</footer>
+    <!-- Footer -->
+    <footer class="mt-8 p-4 text-center small muted border-t">
+      <p><strong>v1.0</strong> | Production-ready calculator with enhanced validation, accessibility, and error handling</p>
+      <p class="mt-2">⚠️ For production deployment: Replace CDN links with bundled assets, implement backend validation, add monitoring</p>
+    </footer>
   </div>
 
-<script>
-(function(){
-  'use strict'
+  <script>
+    (function() {
+      'use strict';
 
-  // Utility helpers
-  const $ = (s) => document.querySelector(s)
-  const $all = (s) => Array.from(document.querySelectorAll(s))
-  const fmt = (v, digits=0) => Number.isFinite(v)? v.toLocaleString(undefined, {maximumFractionDigits: digits}) : '—'
-  const fmtCurrency = (v, digits=0) => Number.isFinite(v)? '$'+v.toLocaleString(undefined, {maximumFractionDigits: digits}) : '—'
+      // ============ CONFIGURATION ============
+      const CONFIG = {
+        debounceDelay: 300,
+        maxPeriod: 120,
+        maxCustomers: 10000000,
+        chartColors: ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b']
+      };
 
-  // Defaults used by reset & example scenario
-  const defaults = {
-    period:12, newCustomers:10000, arpu:150, grossMargin:60,
-    spend_partnerships:15000, cac_partnerships:200,
-    spend_community:5000, cac_community:50,
-    spend_incentives:30000, cac_incentives:120,
-    spend_paid:8000, cac_paid:150,
-    alloc_treasury:30, alloc_incentives:25, alloc_ops:20, alloc_rnd:15, alloc_marketing:10
-  }
+      const DEFAULTS = {
+        period: 12,
+        newCustomers: 10000,
+        arpu: 150,
+        grossMargin: 60,
+        spend_partnerships: 15000,
+        cac_partnerships: 200,
+        spend_community: 5000,
+        cac_community: 50,
+        spend_incentives: 30000,
+        cac_incentives: 120,
+        spend_paid: 8000,
+        cac_paid: 150,
+        alloc_treasury: 30,
+        alloc_incentives: 25,
+        alloc_ops: 20,
+        alloc_rnd: 15,
+        alloc_marketing: 10
+      };
 
-  // Get numeric input safely
-  function getNum(id){
-    const el = document.getElementById(id)
-    if(!el) return 0
-    const v = parseFloat(el.value)
-    return Number.isFinite(v)? v : 0
-  }
+      // ============ UTILITIES ============
+      const $ = (selector) => document.querySelector(selector);
+      const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
-  // Set inputs from object
-  function setInputs(obj){
-    for(const k in obj){ const el=document.getElementById(k); if(el) el.value = obj[k] }
-  }
+      const fmt = (value, decimals = 0) => {
+        if (!Number.isFinite(value)) return '—';
+        return value.toLocaleString(undefined, { 
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals 
+        });
+      };
 
-  // Validate inputs and produce warnings/errors
-  function validate(){
-    const errors = []
-    const warnings = []
-    const period = getNum('period')
-    const target = getNum('newCustomers')
-    const arpu = getNum('arpu')
-    const gross = getNum('grossMargin')
+      const fmtCurrency = (value, decimals = 0) => {
+        if (!Number.isFinite(value)) return '—';
+        return '$' + fmt(value, decimals);
+      };
 
-    if(period < 1) errors.push('Time period must be at least 1 month.')
-    if(target < 0) errors.push('Target customers must be 0 or greater.')
-    if(arpu < 0) errors.push('ARPU must be 0 or greater.')
-    if(gross < 0 || gross > 100) errors.push('Gross margin must be between 0 and 100.')
+      const getNum = (id) => {
+        const el = document.getElementById(id);
+        if (!el) return 0;
+        const value = parseFloat(el.value);
+        return Number.isFinite(value) ? value : 0;
+      };
 
-    const channels = ['partnerships','community','incentives','paid']
-    channels.forEach(c=>{
-      const spend = getNum('spend_'+c)
-      const cac = getNum('cac_'+c)
-      if(spend < 0) errors.push(`${c} spend cannot be negative.`)
-      if(cac < 0) errors.push(`${c} CAC cannot be negative.`)
-      if(spend > 0 && cac === 0) warnings.push(`${capitalize(c)} has spend > 0 but CAC = 0 — acquisitions cannot be computed for that channel.`)
-    })
+      const setInput = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+      };
 
-    const allocs = ['alloc_treasury','alloc_incentives','alloc_ops','alloc_rnd','alloc_marketing'].map(id=>getNum(id))
-    if(allocs.some(a=>a<0)) errors.push('Allocation percentages must be 0 or greater.')
+      const showError = (id, message) => {
+        const errorEl = document.getElementById(id + '-error');
+        const inputEl = document.getElementById(id);
+        if (errorEl) {
+          errorEl.textContent = message;
+          errorEl.style.display = message ? 'block' : 'none';
+        }
+        if (inputEl) {
+          if (message) {
+            inputEl.classList.add('input-error');
+            inputEl.classList.remove('input-success');
+          } else {
+            inputEl.classList.remove('input-error');
+            inputEl.classList.add('input-success');
+          }
+        }
+      };
 
-    return {errors,warnings}
-  }
+      const clearErrors = () => {
+        $$('[id$="-error"]').forEach(el => {
+          el.textContent = '';
+          el.style.display = 'none';
+        });
+        $$('input').forEach(el => {
+          el.classList.remove('input-error', 'input-success');
+        });
+      };
 
-  function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1) }
+      // Debounce helper
+      const debounce = (func, wait) => {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      };
 
-  // Main calculation function
-  function calculate(){
-    const period = getNum('period')
-    const target = getNum('newCustomers')
-    const arpu = getNum('arpu')
-    const grossMarginPct = getNum('grossMargin')/100
+      // ============ VALIDATION ============
+      const validate = () => {
+        clearErrors();
+        const errors = [];
+        const warnings = [];
 
-    const channels = ['partnerships','community','incentives','paid']
-    let totalMonthlySpend = 0
-    let totalAcquiredMonthly = 0
-    const channelDetails = {}
-    channels.forEach(c=>{
-      const spend = getNum('spend_'+c)
-      const cac = getNum('cac_'+c)
-      totalMonthlySpend += spend
-      const acquiredMonthly = (cac > 0) ? Math.floor(spend / cac) : 0
-      channelDetails[c] = {spend, cac, acquiredMonthly}
-      totalAcquiredMonthly += acquiredMonthly
-    })
+        const period = getNum('period');
+        const target = getNum('newCustomers');
+        const arpu = getNum('arpu');
+        const gross = getNum('grossMargin');
 
-    const totalSpend = totalMonthlySpend * period
-    const acquired = totalAcquiredMonthly * period
-    const revenuePerCustomerPeriod = arpu * (period/12)
-    const totalRevenue = target * revenuePerCustomerPeriod
-    const grossProfit = totalRevenue * grossMarginPct
+        if (period < 1) {
+          showError('period', 'Must be at least 1 month');
+          errors.push('Invalid time period');
+        } else if (period > CONFIG.maxPeriod) {
+          showError('period', `Maximum ${CONFIG.maxPeriod} months`);
+          errors.push('Time period too large');
+        }
 
-    const blendedCAC = acquired > 0 ? totalSpend / acquired : NaN
-    const shortfall = Math.max(0, target - acquired)
-    const extraSpendToHitTarget = (shortfall > 0 && Number.isFinite(blendedCAC) && blendedCAC > 0) ? shortfall * blendedCAC : NaN
+        if (target < 1) {
+          showError('newCustomers', 'Must be at least 1 customer');
+          errors.push('Invalid customer target');
+        } else if (target > CONFIG.maxCustomers) {
+          showError('newCustomers', `Maximum ${fmt(CONFIG.maxCustomers)} customers`);
+          errors.push('Customer target too large');
+        }
 
-    const totalCAC = totalSpend + (Number.isFinite(extraSpendToHitTarget) ? extraSpendToHitTarget : 0)
-    const totalCACperCustomer = target > 0 ? (totalCAC / target) : NaN
-    const netProfit = grossProfit - totalCAC
+        if (arpu < 0) {
+          showError('arpu', 'Cannot be negative');
+          errors.push('Invalid ARPU');
+        } else if (arpu === 0) {
+          showError('arpu', 'ARPU should be greater than 0');
+          warnings.push('ARPU is zero');
+        }
 
-    const allocations = {
-      treasury: netProfit * (getNum('alloc_treasury')/100),
-      incentives: netProfit * (getNum('alloc_incentives')/100),
-      ops: netProfit * (getNum('alloc_ops')/100),
-      rnd: netProfit * (getNum('alloc_rnd')/100),
-      marketing: netProfit * (getNum('alloc_marketing')/100)
-    }
+        if (gross < 0 || gross > 100) {
+          showError('grossMargin', 'Must be between 0 and 100');
+          errors.push('Invalid gross margin');
+        }
 
-    return {
-      period,target,arpu,grossProfit,totalSpend,acquired,channelDetails,blendedCAC,shortfall,extraSpendToHitTarget,totalRevenue,totalCAC,totalCACperCustomer,netProfit,allocations
-    }
-  }
+        const channels = ['partnerships', 'community', 'incentives', 'paid'];
+        channels.forEach(channel => {
+          const spend = getNum('spend_' + channel);
+          const cac = getNum('cac_' + channel);
 
-  // Render UI results safely
-  let chart = null
-  function render(){
-    try{
-      const {errors,warnings} = validate()
-      const banner = $('#banner')
-      banner.innerHTML = ''
-      if(errors.length){
-        banner.innerHTML = `<div class=\"card p-3 mb-3 bg-red-50 border border-red-100 rounded\"><strong class=\"danger\">Errors:</strong> <ul class=\"ml-4\">${errors.map(e=>`<li>${e}</li>`).join('')}</ul></div>`
-        $('#results').innerHTML = ''
-        if(chart){ chart.destroy(); chart = null }
-        return
-      }
-      if(warnings.length){
-        banner.innerHTML = `<div class=\"card p-3 mb-3 bg-yellow-50 border border-yellow-100 rounded\"><strong>Warnings:</strong> <ul class=\"ml-4\">${warnings.map(w=>`<li>${w}</li>`).join('')}</ul></div>`
-      }
+          if (spend < 0) {
+            showError('spend_' + channel, 'Cannot be negative');
+            errors.push(`Invalid ${channel} spend`);
+          }
 
-      const r = calculate()
+          if (cac < 0) {
+            showError('cac_' + channel, 'Cannot be negative');
+            errors.push(`Invalid ${channel} CAC`);
+          } else if (spend > 0 && cac === 0) {
+            showError('cac_' + channel, 'Should be > 0 when spend > 0');
+            warnings.push(`${capitalize(channel)} has spend but CAC is 0`);
+          }
+        });
 
-      // Update per-channel acquisitions in the form
-      for(const c in r.channelDetails){ const span = $('#acq_'+c); if(span) span.textContent = fmt(r.channelDetails[c].acquiredMonthly,0) }
+        const allocIds = ['alloc_treasury', 'alloc_incentives', 'alloc_ops', 'alloc_rnd', 'alloc_marketing'];
+        allocIds.forEach(id => {
+          const value = getNum(id);
+          if (value < 0) {
+            showError(id, 'Cannot be negative');
+            errors.push('Invalid allocation percentage');
+          }
+        });
 
-      // Build results HTML with safe formatting
-      const resultsEl = $('#results')
-      const netNote = r.netProfit < 0 ? '<div class="danger"><strong>Note:</strong> Net profit is negative — allocations will be negative or indicate a loss.</div>' : ''
-      resultsEl.innerHTML = `
-        <div><strong>Period:</strong> ${r.period} months</div>
-        <div><strong>Target customers:</strong> ${fmt(r.target,0)}</div>
-        <div><strong>Total projected revenue:</strong> ${fmtCurrency(r.totalRevenue,0)}</div>
-        <div><strong>Gross profit (after COGS):</strong> ${fmtCurrency(r.grossProfit,0)}</div>
-        <div><strong>Total acquisition spend (period):</strong> ${fmtCurrency(r.totalSpend,0)}</div>
-        <div><strong>Estimated acquired from current monthly spends:</strong> ${fmt(r.acquired,0)}</div>
-        <div><strong>Blended CAC (current):</strong> ${Number.isFinite(r.blendedCAC) ? fmtCurrency(r.blendedCAC,2) : '—'}</div>
-        <div><strong>Extra spend required to hit target (est):</strong> ${Number.isFinite(r.extraSpendToHitTarget) ? fmtCurrency(r.extraSpendToHitTarget,0) : '—'}</div>
-        <div><strong>Total CAC (including extra):</strong> ${fmtCurrency(r.totalCAC,0)}</div>
-        <div><strong>Total CAC per customer (period):</strong> ${Number.isFinite(r.totalCACperCustomer) ? fmtCurrency(r.totalCACperCustomer,2) : '—'}</div>
-        <div><strong>Net profit (gross - CAC):</strong> ${fmtCurrency(r.netProfit,0)}</div>
-        ${netNote}
-        <hr />
-        <div class=\"font-medium mt-2\">Allocation (from net profit)</div>
-        <ul class=\"small list-disc pl-5 mt-2\">
-          <li>Treasury / reserves: ${fmtCurrency(r.allocations.treasury,0)}</li>
-          <li>Incentives & growth: ${fmtCurrency(r.allocations.incentives,0)}</li>
-          <li>Operations & compliance: ${fmtCurrency(r.allocations.ops,0)}</li>
-          <li>Product & R&D: ${fmtCurrency(r.allocations.rnd,0)}</li>
-          <li>Marketing & biz dev: ${fmtCurrency(r.allocations.marketing,0)}</li>
-        </ul>
-      `
+        return { errors, warnings, isValid: errors.length === 0 };
+      };
 
-      // Chart
-      const ctx = $('#allocationChart').getContext('2d')
-      const labels = ['Treasury','Incentives','Ops','R&D','Marketing']
-      const values = [r.allocations.treasury, r.allocations.incentives, r.allocations.ops, r.allocations.rnd, r.allocations.marketing].map(v => Number.isFinite(v) ? Number(v.toFixed(2)) : 0)
+      const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
-      if(chart) chart.destroy()
-      chart = new Chart(ctx,{
-        type: 'pie',
-        data: { labels, datasets: [{ data: values }] },
-        options: { plugins: { legend: { position: 'bottom' } } }
-      })
+      // ============ CALCULATIONS ============
+      const calculate = () => {
+        try {
+          const period = getNum('period');
+          const target = getNum('newCustomers');
+          const arpu = getNum('arpu');
+          const grossMarginPct = getNum('grossMargin') / 100;
 
-    }catch(err){
-      console.error('Render error', err)
-      $('#banner').innerHTML = `<div class=\"card p-3 mb-3 bg-red-50 border border-red-100 rounded\"><strong class=\"danger\">Unexpected error:</strong> ${err.message}</div>`
-    }
-  }
+          const channels = ['partnerships', 'community', 'incentives', 'paid'];
+          let totalMonthlySpend = 0;
+          let totalAcquiredMonthly = 0;
+          const channelDetails = {};
 
-  // CSV export
-  function exportCSV(){
-    try{
-      const r = calculate()
-      const rows = []
-      rows.push(['Field','Value'])
-      rows.push(['Period months', r.period])
-      rows.push(['Target customers', r.target])
-      rows.push(['Total revenue', r.totalRevenue])
-      rows.push(['Gross profit', r.grossProfit])
-      rows.push(['Total acquisition spend', r.totalSpend])
-      rows.push(['Estimated acquired', r.acquired])
-      rows.push(['Blended CAC', Number.isFinite(r.blendedCAC)? r.blendedCAC.toFixed(2): ''])
-      rows.push(['Extra spend to hit target', Number.isFinite(r.extraSpendToHitTarget)? r.extraSpendToHitTarget.toFixed(2): ''])
-      rows.push(['Total CAC', r.totalCAC])
-      rows.push(['Total CAC per customer', Number.isFinite(r.totalCACperCustomer)? r.totalCACperCustomer.toFixed(2): ''])
-      rows.push(['Net profit', r.netProfit])
-      rows.push([])
-      rows.push(['Channel','Monthly spend','CAC','Monthly acquisitions'])
-      for(const c in r.channelDetails){
-        const d = r.channelDetails[c]
-        rows.push([c, d.spend, d.cac, d.acquiredMonthly])
-      }
-      rows.push([])
-      rows.push(['Allocations','Amount'])
-      rows.push(['Treasury', r.allocations.treasury])
-      rows.push(['Incentives', r.allocations.incentives])
-      rows.push(['Ops', r.allocations.ops])
-      rows.push(['R&D', r.allocations.rnd])
-      rows.push(['Marketing', r.allocations.marketing])
+          channels.forEach(channel => {
+            const spend = getNum('spend_' + channel);
+            const cac = getNum('cac_' + channel);
+            totalMonthlySpend += spend;
+            const acquiredMonthly = (cac > 0) ? Math.floor(spend / cac) : 0;
+            channelDetails[channel] = { spend, cac, acquiredMonthly };
+            totalAcquiredMonthly += acquiredMonthly;
+          });
 
-      const csv = rows.map(rw => rw.map(cell => typeof cell === 'string' && cell.includes(',') ? '"'+cell+'"' : cell).join(',')).join('\n')
-      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'})
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'cac_allocation_results.csv'
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
-    }catch(err){ console.error(err); alert('Export failed: '+err.message) }
-  }
+          const totalSpend = totalMonthlySpend * period;
+          const acquired = totalAcquiredMonthly * period;
+          const revenuePerCustomerPeriod = arpu * (period / 12);
+          const totalRevenue = target * revenuePerCustomerPeriod;
+          const grossProfit = totalRevenue * grossMarginPct;
 
-  // JSON export
-  function exportJSON(){
-    try{
-      const r = calculate()
-      const data = JSON.stringify(r, null, 2)
-      const blob = new Blob([data], {type:'application/json'})
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'cac_allocation_results.json'
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
-    }catch(err){ console.error(err); alert('Export failed: '+err.message) }
-  }
+          const blendedCAC = acquired > 0 ? totalSpend / acquired : NaN;
+          const shortfall = Math.max(0, target - acquired);
+          const extraSpendToHitTarget = (shortfall > 0 && Number.isFinite(blendedCAC) && blendedCAC > 0) 
+            ? shortfall * blendedCAC 
+            : NaN;
 
-  // Bind events
-  $('#calcBtn').addEventListener('click', render)
-  $('#resetBtn').addEventListener('click', ()=>{ setInputs(defaults); render(); $('#formMessages').textContent = 'Reset to defaults.'; setTimeout(()=>$('#formMessages').textContent='',2000) })
-  $('#exportCsv').addEventListener('click', exportCSV)
-  $('#exportJson').addEventListener('click', exportJSON)
-  $('#exampleBtn').addEventListener('click', ()=>{ // illustrative scenario
-    const example = Object.assign({}, defaults, { period:6, newCustomers:2500, spend_incentives:20000, spend_community:7000 })
-    setInputs(example); render(); $('#formMessages').textContent = 'Loaded example scenario.'; setTimeout(()=>$('#formMessages').textContent='',2000)
-  })
+          const totalCAC = totalSpend + (Number.isFinite(extraSpendToHitTarget) ? extraSpendToHitTarget : 0);
+          const totalCACperCustomer = target > 0 ? totalCAC / target : NaN;
+          const netProfit = grossProfit - totalCAC;
 
-  // Auto-update per-channel acquisition counts when spends/CAC change
-  const watched = ['spend_partnerships','cac_partnerships','spend_community','cac_community','spend_incentives','cac_incentives','spend_paid','cac_paid']
-  watched.forEach(id=>{ const el = document.getElementById(id); if(el) el.addEventListener('input', ()=>{
-    try{
-      const channels = ['partnerships','community','incentives','paid']
-      channels.forEach(c=>{ const spend = getNum('spend_'+c); const cac = getNum('cac_'+c); const acq = (cac>0)? Math.floor(spend/cac) : 0; const span = $('#acq_'+c); if(span) span.textContent = fmt(acq,0) })
-    }catch(e){console.error(e)}
-  })})
+          const allocations = {
+            treasury: netProfit * (getNum('alloc_treasury') / 100),
+            incentives: netProfit * (getNum('alloc_incentives') / 100),
+            ops: netProfit * (getNum('alloc_ops') / 100),
+            rnd: netProfit * (getNum('alloc_rnd') / 100),
+            marketing: netProfit * (getNum('alloc_marketing') / 100)
+          };
 
-  // Initialize
-  setInputs(defaults)
-  // populate initial per-channel estimates
-  watched.forEach(id=>{ const ev = new Event('input'); const el = document.getElementById(id); if(el) el.dispatchEvent(ev) })
-  render()
+          return {
+            period,
+            target,
+            arpu,
+            grossProfit,
+            totalSpend,
+            acquired,
+            channelDetails,
+            blendedCAC,
+            shortfall,
+            extraSpendToHitTarget,
+            totalRevenue,
+            totalCAC,
+            totalCACperCustomer,
+            netProfit,
+            allocations,
+            success: true
+          };
+        } catch (error) {
+          console.error('Calculation error:', error);
+          return { success: false, error: error.message };
+        }
+      };
 
-})();
-</script>
+      // ============ RENDERING ============
+      let chartInstance = null;
+
+      const updateChannelAcquisitions = () => {
+        const channels = ['partnerships', 'community', 'incentives', 'paid'];
+        channels.forEach(channel => {
+          const spend = getNum('spend_' + channel);
+          const cac = getNum('cac_' + channel);
+          const acq = (cac > 0) ? Math.floor(spend / cac) : 0;
+          const el = document.getElementById('acq_' + channel);
+          if (el) el.textContent = fmt(acq, 0);
+        });
+      };
+
+      const updateAllocationTotal = () => {
+        const total = ['alloc_treasury', 'alloc_incentives', 'alloc_ops', 'alloc_rnd', 'alloc_marketing']
+          .reduce((sum, id) => sum + getNum(id), 0);
+        const el = document.getElementById('allocTotal');
+        if (el) {
+          el.textContent = fmt(total, 1);
+          el.style.color = total > 100 ? 'var(--warning)' : 'inherit';
+        }
+      };
+
+      const render = () => {
+        const validation = validate();
+        const alertBanner = $('#alertBanner');
+        alertBanner.innerHTML = '';
+
+        if (!validation.isValid) {
+          alertBanner.innerHTML = `
+            <div class="p-4 mb-4 bg-red-50 border border-red-200 rounded fade-in">
+              <strong class="danger">⚠️ Validation Errors:</strong>
+              <ul class="mt-2 ml-6 list-disc">
+                ${validation.errors.map(e => `<li>${e}</li>`).join('')}
+              </ul>
+            </div>
+          `;
+          $('#results').innerHTML = '<p class="muted">Please fix validation errors above.</p>';
+          if (chartInstance) {
+            chartInstance.destroy();
+            chartInstance = null;
+          }
+          return;
+        }
+
+        if (validation.warnings.length > 0) {
+          alertBanner.innerHTML = `
+            <div class="p-4 mb-4 bg-yellow-50 border border-yellow-200 rounded fade-in">
+              <strong class="warning">⚠️ Warnings:</strong>
+              <ul class="mt-2 ml-6 list-disc">
+                ${validation.warnings.map(w => `<li>${w}</li>`).join('')}
+              </ul>
+            </div>
+          `;
+        }
+
+        const result = calculate();
+        
+        if (!result.success) {
+          alertBanner.innerHTML = `
+            <div class="p-4 mb-4 bg-red-50 border border-red-200 rounded fade-in">
+              <strong class="danger">⚠️ Calculation Error:</strong>
+              <p class="mt-2">${result.error}</p>
+            </div>
+          `;
+          return;
+        }
+
+        updateChannelAcquisitions();
+        updateAllocationTotal();
+
+        const negativeNote = result.netProfit < 0 
+          ? '<div class="p-3 mt-3 bg-red-50 border border-red-200 rounded"><strong class="danger">⚠️ Note:</strong> Net profit is negative. Allocations represent losses.</div>' 
+          : '';
+
+        $('#results').innerHTML = `
+          <div class="grid grid-cols-2 gap-3">
+            <div><strong>Period:</strong></div>
+            <div class="kv text-right">${result.period} months</div>
+            
+            <div><strong>Target Customers:</strong></div>
+            <div class="kv text-right">${fmt(result.target, 0)}</div>
+            
+            <div><strong>Total Revenue:</strong></div>
+            <div class="kv text-right">${fmtCurrency(result.totalRevenue, 0)}</div>
+            
+            <div><strong>Gross Profit:</strong></div>
+            <div class="kv text-right">${fmtCurrency(result.grossProfit, 0)}</div>
+            
+            <div><strong>Base Acquisition Spend:</strong></div>
+            <div class="kv text-right">${fmtCurrency(result.totalSpend, 0)}</div>
+            
+            <div><strong>Acquired (Current Spend):</strong></div>
+            <div class="kv text-right">${fmt(result.acquired, 0)}</div>
+            
+            <div><strong>Blended CAC:</strong></div>
+            <div class="kv text-right">${Number.isFinite(result.blendedCAC) ? fmtCurrency(result.blendedCAC, 2) : '—'}</div>
+            
+            <div><strong>Shortfall:</strong></div>
+            <div class="kv text-right">${fmt(result.shortfall, 0)} customers</div>
+            
+            <div><strong>Extra Spend Needed:</strong></div>
+            <div class="kv text-right">${Number.isFinite(result.extraSpendToHitTarget) ? fmtCurrency(result.extraSpendToHitTarget, 0) : '—'}</div>
+            
+            <div><strong>Total CAC:</strong></div>
+            <div class="kv text-right">${fmtCurrency(result.totalCAC, 0)}</div>
+            
+            <div><strong>CAC per Customer:</strong></div>
+            <div class="kv text-right">${Number.isFinite(result.totalCACperCustomer) ? fmtCurrency(result.totalCACperCustomer, 2) : '—'}</div>
+            
+            <div><strong>Net Profit:</strong></div>
+            <div class="kv text-right font-bold ${result.netProfit < 0 ? 'danger' : 'success'}">
+              ${fmtCurrency(result.netProfit, 0)}
+            </div>
+          </div>
+          ${negativeNote}
+          <hr class="my-4">
+          <div class="font-medium mb-3">Profit Allocation</div>
+          <div class="grid grid-cols-2 gap-2 small">
+            <div>Treasury/Reserves:</div>
+            <div class="kv text-right">${fmtCurrency(result.allocations.treasury, 0)}</div>
+            
+            <div>Incentives & Growth:</div>
+            <div class="kv text-right">${fmtCurrency(result.allocations.incentives, 0)}</div>
+            
+            <div>Ops & Compliance:</div>
+            <div class="kv text-right">${fmtCurrency(result.allocations.ops, 0)}</div>
+            
+            <div>Product & R&D:</div>
+            <div class="kv text-right">${fmtCurrency(result.allocations.rnd, 0)}</div>
+            
+            <div>Marketing & Biz Dev:</div>
+            <div class="kv text-right">${fmtCurrency(result.allocations.marketing, 0)}</div>
+          </div>
+        `;
+
+        // Update Chart
+        const ctx = $('#allocationChart').getContext('2d');
+        const labels = ['Treasury', 'Incentives', 'Ops', 'R&D', 'Marketing'];
+        const values = [
+          Math.abs(result.allocations.treasury),
+          Math.abs(result.allocations.incentives),
+          Math.abs(result.allocations.ops),
+          Math.abs(result.allocations.rnd),
+          Math.abs(result.allocations.marketing)
+        ];
+
+        if (chartInstance) {
+          chartInstance.data.datasets[0].data = values;
+          chartInstance.update();
+        } else {
+          chartInstance = new Chart(ctx, {
+            type: 'pie',
+            data: {
+              labels,
+              datasets: [{
+                data: values,
+                backgroundColor: CONFIG.chartColors
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom'
+                },
+                tooltip: {
+                  callbacks: {
+                    label: (context) => {
+                      const label = context.label || '';
+                      const value = fmtCurrency(context.parsed, 0);
+                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                      const percent = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                      return `${label}: ${value} (${percent}%)`;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        }
+
+        $('#calcStatus').textContent = '✓ Calculated';
+        setTimeout(() => $('#calcStatus').textContent = '', 2000);
+      };
+
+      // ============ EXPORT FUNCTIONS ============
+      const exportCSV = () => {
+        try {
+          const result = calculate();
+          if (!result.success) {
+            alert('Cannot export: calculation errors present');
+            return;
+          }
+
+          const rows = [
+            ['Field', 'Value'],
+            ['Period (months)', result.period],
+            ['Target Customers', result.target],
+            ['Total Revenue', result.totalRevenue.toFixed(2)],
+            ['Gross Profit', result.grossProfit.toFixed(2)],
+            ['Total Acquisition Spend', result.totalSpend.toFixed(2)],
+            ['Estimated Acquired', result.acquired],
+            ['Blended CAC', Number.isFinite(result.blendedCAC) ? result.blendedCAC.toFixed(2) : 'N/A'],
+            ['Extra Spend to Hit Target', Number.isFinite(result.extraSpendToHitTarget) ? result.extraSpendToHitTarget.toFixed(2) : 'N/A'],
+            ['Total CAC', result.totalCAC.toFixed(2)],
+            ['Total CAC per Customer', Number.isFinite(result.totalCACperCustomer) ? result.totalCACperCustomer.toFixed(2) : 'N/A'],
+            ['Net Profit', result.netProfit.toFixed(2)],
+            [],
+            ['Channel', 'Monthly Spend', 'CAC', 'Monthly Acquisitions']
+          ];
+
+          for (const channel in result.channelDetails) {
+            const d = result.channelDetails[channel];
+            rows.push([capitalize(channel), d.spend, d.cac, d.acquiredMonthly]);
+          }
+
+          rows.push([]);
+          rows.push(['Allocation', 'Amount']);
+          rows.push(['Treasury', result.allocations.treasury.toFixed(2)]);
+          rows.push(['Incentives', result.allocations.incentives.toFixed(2)]);
+          rows.push(['Ops', result.allocations.ops.toFixed(2)]);
+          rows.push(['R&D', result.allocations.rnd.toFixed(2)]);
+          rows.push(['Marketing', result.allocations.marketing.toFixed(2)]);
+
+          const csv = rows.map(row => 
+            row.map(cell => {
+              const str = String(cell);
+              return str.includes(',') || str.includes('"') ? `"${str.replace(/"/g, '""')}"` : str;
+            }).join(',')
+          ).join('\n');
+
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `cac_allocation_${new Date().toISOString().split('T')[0]}.csv`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+
+          $('#calcStatus').textContent = '✓ CSV exported';
+          setTimeout(() => $('#calcStatus').textContent = '', 2000);
+        } catch (error) {
+          console.error('Export error:', error);
+          alert('Export failed: ' + error.message);
+        }
+      };
+
+      const exportJSON = () => {
+        try {
+          const result = calculate();
+          if (!result.success) {
+            alert('Cannot export: calculation errors present');
+            return;
+          }
+
+          const data = JSON.stringify(result, null, 2);
+          const blob = new Blob([data], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `cac_allocation_${new Date().toISOString().split('T')[0]}.json`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+
+          $('#calcStatus').textContent = '✓ JSON exported';
+          setTimeout(() => $('#calcStatus').textContent = '', 2000);
+        } catch (error) {
+          console.error('Export error:', error);
+          alert('Export failed: ' + error.message);
+        }
+      };
+
+      const printResults = () => {
+        window.print();
+      };
+
+      // ============ EVENT HANDLERS ============
+      const debouncedRender = debounce(render, CONFIG.debounceDelay);
+
+      const setupEventListeners = () => {
+        // Calculate button
+        $('#calcBtn').addEventListener('click', render);
+
+        // Reset button
+        $('#resetBtn').addEventListener('click', () => {
+          if (confirm('Reset all values to defaults?')) {
+            Object.keys(DEFAULTS).forEach(key => setInput(key, DEFAULTS[key]));
+            render();
+            $('#calcStatus').textContent = '✓ Reset to defaults';
+            setTimeout(() => $('#calcStatus').textContent = '', 2000);
+          }
+        });
+
+        // Example scenario
+        $('#exampleBtn').addEventListener('click', () => {
+          const example = {
+            ...DEFAULTS,
+            period: 6,
+            newCustomers: 2500,
+            spend_incentives: 20000,
+            spend_community: 7000
+          };
+          Object.keys(example).forEach(key => setInput(key, example[key]));
+          render();
+          $('#calcStatus').textContent = '✓ Example loaded';
+          setTimeout(() => $('#calcStatus').textContent = '', 2000);
+        });
+
+        // Export buttons
+        $('#exportCsv').addEventListener('click', exportCSV);
+        $('#exportJson').addEventListener('click', exportJSON);
+        $('#printBtn').addEventListener('click', printResults);
+
+        // Auto-calculate toggle
+        $('#autoCalc').addEventListener('change', (e) => {
+          const autoCalc = e.target.checked;
+          $('#calcBtn').disabled = autoCalc;
+          if (autoCalc) render();
+        });
+
+        // Input listeners for auto-calculate
+        $$('input[type="number"]').forEach(input => {
+          input.addEventListener('input', () => {
+            updateChannelAcquisitions();
+            updateAllocationTotal();
+            if ($('#autoCalc').checked) {
+              debouncedRender();
+            }
+          });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+          if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              render();
+            } else if (e.key === 's') {
+              e.preventDefault();
+              exportCSV();
+            }
+          }
+        });
+      };
+
+      // ============ INITIALIZATION ============
+      const init = () => {
+        try {
+          // Check if Chart.js is loaded
+          if (typeof Chart === 'undefined') {
+            throw new Error('Chart.js library failed to load. Please check your internet connection and refresh.');
+          }
+
+          // Set defaults
+          Object.keys(DEFAULTS).forEach(key => setInput(key, DEFAULTS[key]));
+          
+          // Setup listeners
+          setupEventListeners();
+          
+          // Initial render
+          updateChannelAcquisitions();
+          updateAllocationTotal();
+          render();
+
+          console.log('✓ Calculator initialized successfully');
+        } catch (error) {
+          console.error('Initialization error:', error);
+          $('#alertBanner').innerHTML = `
+            <div class="p-4 bg-red-50 border border-red-200 rounded">
+              <strong class="danger">Initialization Error:</strong>
+              <p class="mt-2">Failed to initialize calculator. Please refresh the page.</p>
+              <p class="small mt-2">${error.message}</p>
+            </div>
+          `;
+        }
+      };
+
+      // Wait for both DOM and Chart.js to be ready
+      const waitForDependencies = () => {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            // Give Chart.js a moment to load
+            if (typeof Chart !== 'undefined') {
+              init();
+            } else {
+              setTimeout(init, 100);
+            }
+          });
+        } else {
+          // DOM already ready
+          if (typeof Chart !== 'undefined') {
+            init();
+          } else {
+            setTimeout(init, 100);
+          }
+        }
+      };
+
+      waitForDependencies();
+    })();
+  </script>
 </body>
 </html>
