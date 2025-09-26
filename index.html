@@ -105,6 +105,20 @@
       outline: 2px solid #3b82f6;
       outline-offset: 2px;
     }
+
+    /* Print styles */
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background: white;
+      }
+      .card {
+        box-shadow: none;
+        border: 1px solid #e5e7eb;
+      }
+    }
   </style>
 </head>
 <body class="p-6">
@@ -136,7 +150,7 @@
       <section class="card">
         <div class="flex justify-between items-center mb-4">
           <h2 class="font-medium text-lg">Input Parameters</h2>
-          <label class="flex items-center gap-2 small">
+          <label class="flex items-center gap-2 small no-print">
             <input type="checkbox" id="autoCalc" checked aria-label="Enable automatic calculation">
             <span>Auto-calculate</span>
           </label>
@@ -442,7 +456,7 @@
           </fieldset>
 
           <!-- Action Buttons -->
-          <div class="mt-6 flex flex-wrap items-center gap-3">
+          <div class="mt-6 flex flex-wrap items-center gap-3 no-print">
             <button 
               id="calcBtn" 
               type="button" 
@@ -486,7 +500,7 @@
           </div>
 
           <!-- Export Actions -->
-          <div class="mt-6 flex flex-wrap gap-3">
+          <div class="mt-6 flex flex-wrap gap-3 no-print">
             <button 
               id="exportCsv" 
               class="px-4 py-2 border rounded hover:bg-gray-50 transition-colors"
@@ -526,7 +540,13 @@
         debounceDelay: 300,
         maxPeriod: 120,
         maxCustomers: 10000000,
-        chartColors: ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b']
+        chartColors: {
+          treasury: '#3b82f6',      // Blue - Trust & stability
+          incentives: '#10b981',    // Green - Growth & rewards
+          ops: '#f59e0b',           // Amber - Operations & warning
+          rnd: '#8b5cf6',           // Purple - Innovation & creativity
+          marketing: '#ef4444'      // Red - Energy & attention
+        }
       };
 
       const DEFAULTS = {
@@ -881,27 +901,52 @@
           ${negativeNote}
           <hr class="my-4">
           <div class="font-medium mb-3">Profit Allocation</div>
-          <div class="grid grid-cols-2 gap-2 small">
-            <div>Treasury/Reserves:</div>
-            <div class="kv text-right">${fmtCurrency(result.allocations.treasury, 0)}</div>
+          <div class="grid grid-cols-1 gap-2 small">
+            <div class="flex items-center justify-between p-2 rounded" style="background-color: ${CONFIG.chartColors.treasury}15;">
+              <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded" style="background-color: ${CONFIG.chartColors.treasury};"></span>
+                <span>💰 Treasury/Reserves:</span>
+              </div>
+              <div class="kv font-medium">${fmtCurrency(result.allocations.treasury, 0)}</div>
+            </div>
             
-            <div>Incentives & Growth:</div>
-            <div class="kv text-right">${fmtCurrency(result.allocations.incentives, 0)}</div>
+            <div class="flex items-center justify-between p-2 rounded" style="background-color: ${CONFIG.chartColors.incentives}15;">
+              <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded" style="background-color: ${CONFIG.chartColors.incentives};"></span>
+                <span>🚀 Incentives & Growth:</span>
+              </div>
+              <div class="kv font-medium">${fmtCurrency(result.allocations.incentives, 0)}</div>
+            </div>
             
-            <div>Ops & Compliance:</div>
-            <div class="kv text-right">${fmtCurrency(result.allocations.ops, 0)}</div>
+            <div class="flex items-center justify-between p-2 rounded" style="background-color: ${CONFIG.chartColors.ops}15;">
+              <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded" style="background-color: ${CONFIG.chartColors.ops};"></span>
+                <span>⚙️ Ops & Compliance:</span>
+              </div>
+              <div class="kv font-medium">${fmtCurrency(result.allocations.ops, 0)}</div>
+            </div>
             
-            <div>Product & R&D:</div>
-            <div class="kv text-right">${fmtCurrency(result.allocations.rnd, 0)}</div>
+            <div class="flex items-center justify-between p-2 rounded" style="background-color: ${CONFIG.chartColors.rnd}15;">
+              <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded" style="background-color: ${CONFIG.chartColors.rnd};"></span>
+                <span>🔬 Product & R&D:</span>
+              </div>
+              <div class="kv font-medium">${fmtCurrency(result.allocations.rnd, 0)}</div>
+            </div>
             
-            <div>Marketing & Biz Dev:</div>
-            <div class="kv text-right">${fmtCurrency(result.allocations.marketing, 0)}</div>
+            <div class="flex items-center justify-between p-2 rounded" style="background-color: ${CONFIG.chartColors.marketing}15;">
+              <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded" style="background-color: ${CONFIG.chartColors.marketing};"></span>
+                <span>📢 Marketing & Biz Dev:</span>
+              </div>
+              <div class="kv font-medium">${fmtCurrency(result.allocations.marketing, 0)}</div>
+            </div>
           </div>
         `;
 
         // Update Chart
         const ctx = $('#allocationChart').getContext('2d');
-        const labels = ['Treasury', 'Incentives', 'Ops', 'R&D', 'Marketing'];
+        const labels = ['💰 Treasury', '🚀 Incentives', '⚙️ Operations', '🔬 R&D', '📢 Marketing'];
         const values = [
           Math.abs(result.allocations.treasury),
           Math.abs(result.allocations.incentives),
@@ -909,9 +954,17 @@
           Math.abs(result.allocations.rnd),
           Math.abs(result.allocations.marketing)
         ];
+        const colors = [
+          CONFIG.chartColors.treasury,
+          CONFIG.chartColors.incentives,
+          CONFIG.chartColors.ops,
+          CONFIG.chartColors.rnd,
+          CONFIG.chartColors.marketing
+        ];
 
         if (chartInstance) {
           chartInstance.data.datasets[0].data = values;
+          chartInstance.data.datasets[0].backgroundColor = colors;
           chartInstance.update();
         } else {
           chartInstance = new Chart(ctx, {
@@ -920,7 +973,9 @@
               labels,
               datasets: [{
                 data: values,
-                backgroundColor: CONFIG.chartColors
+                backgroundColor: colors,
+                borderColor: '#ffffff',
+                borderWidth: 2
               }]
             },
             options: {
@@ -928,9 +983,20 @@
               maintainAspectRatio: false,
               plugins: {
                 legend: {
-                  position: 'bottom'
+                  position: 'bottom',
+                  labels: {
+                    padding: 15,
+                    font: {
+                      size: 12
+                    },
+                    usePointStyle: true,
+                    pointStyle: 'circle'
+                  }
                 },
                 tooltip: {
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  padding: 12,
+                  cornerRadius: 6,
                   callbacks: {
                     label: (context) => {
                       const label = context.label || '';
